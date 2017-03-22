@@ -51,9 +51,11 @@ public class QuickFind {
     public void union (int x, int y) {
         if (connected (x,y))
             return;
+        int cx = connections[x];
+        int cy = connections[y];
         for (int i = 0; i < connections.length; ++i) {
-            if (connections[i] == connections[x])
-                connections[i] = connections[y];
+            if (connections[i] == cx)
+                connections[i] = cy;
         }
     }
 }
