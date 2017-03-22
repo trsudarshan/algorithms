@@ -1,2 +1,2 @@
-# algorithms
-Code towards Algorithms-I course on Coursera (from Princeton University)
+# Algorithms (Princeton University via Coursera)
+Code towards Algorithms courses from Princeton University via Coursera
