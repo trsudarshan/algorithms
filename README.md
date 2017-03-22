@@ -1,4 +1,4 @@
-My practice dump of https://www.coursera.org/learn/introduction-to-algorithms/
+My practice dump of https://www.coursera.org/learn/algorithms-part1
 
 Running times:
 --------------
