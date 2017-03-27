@@ -16,24 +16,33 @@ public class Percolation {
      * {@see WeightedQuickUnionUF} for more information on how these connections are established and maintained
      */
     WeightedQuickUnionUF uf;
+    
+    /**
+     * Number of open sites in this grid
+     */
+    int numOpenSites;
 
     /**
      * Initialize this grid such that all its sites are blocked to ensure it begins without any ability to percolate. Also
      * initialize the data type to hold future connections across open sites as the percolation model of this grid evolves.
      * @param n {@code int} value representing the order of this grid
+     * @throws IllegalArgumentException when {@code n} is a non-positive value
      */
     public Percolation(int n) {
         
         // validate grid order
         if (n <= 0)
-            throw new java.lang.IllegalArgumentException ("Grid order must be positive.");
+            throw new java.lang.IllegalArgumentException ("Grid order must be a non-zero positive value");
 
-        // initialize grid and accompanying union-find data structures        
-        site = new int[n][n]; // create n-by-n grid, with all sites blocked
-        uf = new WeightedQuickUnionUF(n^2); // create a union-find DS with as many sites as in the grid
-        for (int i = 1; i <= n; i++)
-            for (int j = 1; j <= n;  j++)
-                site [i][j] = 0; // block each site to begin with
+        // initialize n-by-n grid to be fully blocked
+        site = new int[n][n];
+        for (int i = 0; i < n; i++)
+            for (int j = 0; j < n;  j++)
+                site [i][j] = 0;
+        
+        // use a union-find data type to accommodate all sites from the grid should they be opened up in future
+        uf = new WeightedQuickUnionUF(n^2);
+        numOpenSites = 0;
     }
     
     /**
@@ -45,15 +54,16 @@ public class Percolation {
         return (ix <0 || ix >= site.length) ? true : false;
     } 
     
-    // TODO Replace {@code site.length} with {@code site.length-1} 
-
     /**
      * Open the current site in the grid. This translates into two operations: <br>
      * <li>1. Set the site's value in this grid to be {@code 1}</li>
-     * <li>2. Connect this now-open site to any neighboring open sites. A neighboring open site is any open site found to the top or bottom or left or right, sides of this site.</li>
+     * <li>2. Connect this now-open site to any neighboring open sites. A neighboring open site is any 
+     * open site found to the top or bottom or left or right, sides of this site.</li>
      * Connections across open sites is maintained using the {@link WeightedQuickUnionUF} data type
      * @param row {@code int} value representing the row index of the current site in the grid
      * @param col {@code int} value representing the column index of the current site in the grid 
+     * @throws IndexOutOfBoundsException when either (or both) of {@code row} and {@code col} is (or are) 
+     * outside the acceptable range of [0,n)
      */
     public void open(int row, int col) {
         
@@ -65,6 +75,9 @@ public class Percolation {
         // once opened, connect to neighboring open sites, if any
         else if (site [row][col] == 0) {
             site [row][col] = 1;
+            
+            // TODO Avoid going out of bounds either ways, when seeking array values
+            
             if (isOpen(row-1,col)) // top-neighbor
                 uf.union(site[row][col], site[row-1][col]);
             if (isOpen(row+1,col)) // bottom-neighbor
@@ -75,6 +88,7 @@ public class Percolation {
                 uf.union(site[row][col], site[row][col+1]);    
         }
 
+        ++numOpenSites;
     }
 
     /**
@@ -83,6 +97,8 @@ public class Percolation {
      * @param row {@code int} value representing the row index of the current site in the grid
      * @param col {@code int} value representing the column index of the current site in the grid
      * @return {@code boolean} value of {@code true} if it is open; {@code false} if it is closed
+     * @throws IndexOutOfBoundsException when either (or both) of {@code row} and {@code col} is (or are) 
+     * outside the acceptable range of [0,n)
      */
     public boolean isOpen(int row, int col) {
         
@@ -105,6 +121,8 @@ public class Percolation {
      * @param row {@code int} value representing the row index of the current site in the grid
      * @param col {@code int} value representing the column index of the current site in the grid
      * @return {@code boolean} value of {@code true} if it is full; {@code false} if it isn't
+     * @throws IndexOutOfBoundsException when either (or both) of {@code row} and {@code col} is (or are) 
+     * outside the acceptable range of [0,n)
      */
     public boolean isFull(int row, int col) {
         
@@ -114,8 +132,8 @@ public class Percolation {
         
         // is site (row, col) full?
         else if (isOpen(row, col)) {
-            for (int topRowColIx = 1; topRowColIx <= site.length; topRowColIx ++)
-                if (isOpen(1, topRowColIx) && uf.connected(site[row][col], site[1][topRowColIx]))
+            for (int topRowColIx = 0; topRowColIx < site.length; topRowColIx ++)
+                if (isOpen(0, topRowColIx) && uf.connected(site[row][col], site[0][topRowColIx]))
                     return true;
         }
         
@@ -124,9 +142,10 @@ public class Percolation {
 
     /**
      * Yield the number of currently open sites in the grid
+     * @return {@code int} value of number of open sites in the grid at present
      */
     public int numberOfOpenSites() {
-        return -1;
+        return numOpenSites;
     }
 
     /**
@@ -136,8 +155,8 @@ public class Percolation {
      */
     public boolean percolates() {
         // does the system percolate?
-        for (int bottomRowColIx = 1; bottomRowColIx <= site.length; bottomRowColIx++)
-            if (isFull(site.length, bottomRowColIx))
+        for (int bottomRowColIx = 0; bottomRowColIx < site.length; bottomRowColIx++)
+            if (isFull(site.length - 1, bottomRowColIx))
                 return true;
         return false;
     }
